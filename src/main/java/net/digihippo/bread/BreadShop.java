@@ -9,15 +9,17 @@ public class BreadShop
 
     private final OutboundEvents events;
     private final Map<Integer, Account> accounts = new HashMap<>();
+    private final Orders orders;
 
     public BreadShop(OutboundEvents events)
     {
         this.events = events;
+        orders = new Orders(events);
     }
 
     public void createAccount(int id)
     {
-        accounts.put(id, new Account(id, events));
+        accounts.put(id, new Account(id, events, orders));
         events.accountCreatedSuccessfully(id);
     }
 
@@ -52,7 +54,7 @@ public class BreadShop
         final Account account = accounts.get(accountId);
         if (null != account)
         {
-            account.cancelOrder(orderId, PRICE_OF_BREAD);
+            orders.cancel(account, accountId, orderId, PRICE_OF_BREAD);
         }
         else
         {
@@ -62,9 +64,7 @@ public class BreadShop
 
     public void placeWholesaleOrder()
     {
-        final TotUp beanCounter = new TotUp(events);
-        accounts.values().forEach(ac -> ac.totUpOrders(beanCounter));
-        beanCounter.publish();
+        orders.placeAsWholesale();
     }
 
     public void onWholesaleOrder(int quantity)

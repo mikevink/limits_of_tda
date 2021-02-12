@@ -1,49 +1,40 @@
 package net.digihippo.bread;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class Account {
+public class Account
+{
     private final int accountId;
     private final OutboundEvents events;
+    private final Orders orders;
     private int balance = 0;
-    private final Map<Integer, Integer> orders = new HashMap<>();
 
-    public Account(final int id, final OutboundEvents events)
+    public Account(
+            final int id,
+            final OutboundEvents events,
+            final Orders orders)
     {
         accountId = id;
 
         this.events = events;
+        this.orders = orders;
     }
 
-    public void deposit(int creditAmount) {
+    public void deposit(int creditAmount)
+    {
         balance += creditAmount;
         events.newAccountBalance(accountId, balance);
     }
 
-    public void addOrder(int orderId, int amount, final int unitPrice) {
+    public void addOrder(int orderId, int amount, final int unitPrice)
+    {
         int cost = amount * unitPrice;
-        if (cost <= balance) {
-            orders.put(orderId, amount);
+        if (cost <= balance)
+        {
             deposit(-cost);
-            events.orderPlaced(accountId, amount);
-        } else {
+            orders.put(accountId, orderId, amount);
+        }
+        else
+        {
             events.orderRejected(accountId);
         }
-    }
-
-    public void cancelOrder(int orderId, final int unitPrice) {
-        final Integer qty = orders.remove(orderId);
-        if (null != qty) {
-            deposit(qty * unitPrice);
-            events.orderCancelled(accountId, orderId);
-        } else {
-            events.orderNotFound(accountId, orderId);
-        }
-    }
-
-    public void totUpOrders(final TotUp beanCounter)
-    {
-        orders.values().forEach(beanCounter::add);
     }
 }
