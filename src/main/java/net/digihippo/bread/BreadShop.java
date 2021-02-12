@@ -1,66 +1,57 @@
 package net.digihippo.bread;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class BreadShop {
     private static final int PRICE_OF_BREAD = 12;
 
     private final OutboundEvents events;
-    private final AccountRepository accountRepository = new AccountRepository();
+    private final Map<Integer, Account> accounts = new HashMap<>();
 
     public BreadShop(OutboundEvents events) {
         this.events = events;
     }
 
     public void createAccount(int id) {
-        Account newAccount = new Account();
-        accountRepository.addAccount(id, newAccount);
+        accounts.put(id, new Account(id, events));
         events.accountCreatedSuccessfully(id);
     }
 
     public void deposit(int accountId, int creditAmount) {
-        Account account = accountRepository.getAccount(accountId);
-        if (account != null) {
-            final int newBalance = account.deposit(creditAmount);
-            events.newAccountBalance(accountId, newBalance);
-        } else {
+        final Account account = accounts.get(accountId);
+        if (null != account)
+        {
+            account.deposit(creditAmount);
+        }
+        else
+        {
             events.accountNotFound(accountId);
         }
     }
 
     public void placeOrder(int accountId, int orderId, int amount) {
-        Account account = accountRepository.getAccount(accountId);
-        if (account != null) {
-            int cost = amount * PRICE_OF_BREAD;
-            if (account.getBalance() >= cost) {
-                account.addOrder(orderId, amount);
-                int newBalance = account.deposit(-cost);
-                events.orderPlaced(accountId, amount);
-                events.newAccountBalance(accountId, newBalance);
-            } else {
-                events.orderRejected(accountId);
-            }
-        } else {
+        final Account account = accounts.get(accountId);
+        if (null != account)
+        {
+            account.addOrder(orderId, amount, PRICE_OF_BREAD);
+        }
+        else
+        {
             events.accountNotFound(accountId);
         }
     }
 
     public void cancelOrder(int accountId, int orderId) {
-        Account account = accountRepository.getAccount(accountId);
-        if (account == null)
+        final Account account = accounts.get(accountId);
+        if (null != account)
+        {
+            account.cancelOrder(orderId, PRICE_OF_BREAD);
+        }
+        else
         {
             events.accountNotFound(accountId);
-            return;
         }
-
-        Integer cancelledQuantity = account.cancelOrder(orderId);
-        if (cancelledQuantity == null)
-        {
-            events.orderNotFound(accountId, orderId);
-            return;
-        }
-
-        int newBalance = account.deposit(cancelledQuantity * PRICE_OF_BREAD);
-        events.orderCancelled(accountId, orderId);
-        events.newAccountBalance(accountId, newBalance);
     }
 
     public void placeWholesaleOrder() {

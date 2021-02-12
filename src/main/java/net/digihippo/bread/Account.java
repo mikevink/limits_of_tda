@@ -4,23 +4,41 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Account {
+    private final int accountId;
+    private final OutboundEvents events;
     private int balance = 0;
-    private final Map<Integer, Integer> orders = new HashMap<Integer, Integer>();
+    private final Map<Integer, Integer> orders = new HashMap<>();
 
-    public int getBalance() {
-        return balance;
+    public Account(final int id, final OutboundEvents events)
+    {
+        accountId = id;
+
+        this.events = events;
     }
 
-    public int deposit(int creditAmount) {
+    public void deposit(int creditAmount) {
         balance += creditAmount;
-        return balance;
+        events.newAccountBalance(accountId, balance);
     }
 
-    public void addOrder(int orderId, int amount) {
-        orders.put(orderId, amount);
+    public void addOrder(int orderId, int amount, final int unitPrice) {
+        int cost = amount * unitPrice;
+        if (cost <= balance) {
+            orders.put(orderId, amount);
+            deposit(-cost);
+            events.orderPlaced(accountId, amount);
+        } else {
+            events.orderRejected(accountId);
+        }
     }
 
-    public Integer cancelOrder(int orderId) {
-        return orders.remove(orderId);
+    public void cancelOrder(int orderId, final int unitPrice) {
+        final Integer qty = orders.remove(orderId);
+        if (null != qty) {
+            deposit(qty * unitPrice);
+            events.orderCancelled(accountId, orderId);
+        } else {
+            events.orderNotFound(accountId, orderId);
+        }
     }
 }
