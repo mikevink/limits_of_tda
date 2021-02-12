@@ -20,11 +20,6 @@ public class Orders
         events.orderPlaced(accountId, amount);
     }
 
-    public void remove(final int accountId, final int orderId)
-    {
-
-    }
-
     public void cancel(
             final Account account,
             final int accountId,
@@ -34,7 +29,8 @@ public class Orders
         final int inx = find(accountId, orderId);
         if (-1 != inx)
         {
-            orders.remove(inx).refund(account, priceOfBread);
+            final Order order = orders.remove(inx);
+            account.deposit(order.qty * priceOfBread);
             events.orderCancelled(accountId, orderId);
         }
         else
@@ -45,9 +41,36 @@ public class Orders
 
     public void placeAsWholesale()
     {
-        final TotUp totUp = new TotUp(events);
-        orders.forEach(o -> o.toWholesale(totUp));
-        totUp.publish();
+        int total = 0;
+        for (final Order order : orders)
+        {
+            total += order.qty;
+        }
+        events.placeWholesaleOrder(total);
+    }
+
+    public void onWholesaleOrder(final int quantity)
+    {
+        int remaining = quantity;
+        while (0 < remaining && 0 < orders.size())
+        {
+            final Order order = orders.get(0);
+            if (order.qty <= remaining)
+            {
+                remaining = remaining - order.qty;
+                events.orderFilled(order.accountId, order.orderId, order.qty);
+                order.qty = 0;
+            }
+            else
+            {
+                order.qty -= remaining;
+                events.orderFilled(order.accountId, order.orderId, remaining);
+                remaining = 0;
+            }
+            if(0 == order.qty) {
+                orders.remove(0);
+            }
+        }
     }
 
     private int find(final int accountId, final int orderId)
@@ -62,27 +85,18 @@ public class Orders
         return -1;
     }
 
+    // this is a data object, TDA doesn't apply
     private class Order
     {
-        private final int accountId;
-        private final int orderId;
-        private final int qty;
+        int accountId;
+        int orderId;
+        int qty;
 
         public Order(final int accountId, final int orderId, final int qty)
         {
             this.accountId = accountId;
             this.orderId = orderId;
             this.qty = qty;
-        }
-
-        public void refund(final Account account, final int priceOfBread)
-        {
-            account.deposit(qty * priceOfBread);
-        }
-
-        public void toWholesale(final TotUp totUp)
-        {
-            totUp.add(qty);
         }
 
         boolean matches(int accountId, int orderId)

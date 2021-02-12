@@ -69,6 +69,6 @@ public class BreadShop
 
     public void onWholesaleOrder(int quantity)
     {
-        throw new UnsupportedOperationException("Implement me in Objective B");
+        orders.onWholesaleOrder(quantity);
     }
 }
