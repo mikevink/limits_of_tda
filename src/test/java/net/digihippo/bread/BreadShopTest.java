@@ -120,7 +120,6 @@ public class BreadShopTest {
     }
 
     @Test
-    @Ignore("Objective A")
     public void an_empty_shop_places_an_empty_wholesale_order() {
         expectWholesaleOrder(0);
 
@@ -128,7 +127,6 @@ public class BreadShopTest {
     }
 
     @Test
-    @Ignore("Objective A")
     public void wholesale_orders_are_made_for_the_sum_of_the_quantities_of_outstanding_orders_in_one_account() {
         expectWholesaleOrder(40 + 55);
 
@@ -141,7 +139,6 @@ public class BreadShopTest {
     }
 
     @Test
-    @Ignore("Objective A")
     public void wholesale_orders_are_made_for_the_sum_of_the_quantities_of_outstanding_orders_across_accounts() {
         expectWholesaleOrder(40 + 55);
 

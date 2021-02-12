@@ -41,4 +41,9 @@ public class Account {
             events.orderNotFound(accountId, orderId);
         }
     }
+
+    public void totUpOrders(final TotUp beanCounter)
+    {
+        orders.values().forEach(beanCounter::add);
+    }
 }
