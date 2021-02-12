@@ -4,13 +4,13 @@ public class Account
 {
     private final int accountId;
     private final OutboundEvents events;
-    private final Orders orders;
+    private final OrderEvents orders;
     private int balance = 0;
 
     public Account(
             final int id,
             final OutboundEvents events,
-            final Orders orders)
+            final OrderEvents orders)
     {
         accountId = id;
 
@@ -30,7 +30,7 @@ public class Account
         if (cost <= balance)
         {
             deposit(-cost);
-            orders.put(accountId, orderId, amount);
+            orders.place(accountId, orderId, amount);
         }
         else
         {

@@ -3,7 +3,7 @@ package net.digihippo.bread;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Orders
+public class Orders implements OrderEvents
 {
     private final OutboundEvents events;
     private List<Order> orders;
@@ -14,7 +14,8 @@ public class Orders
         orders = new ArrayList<>();
     }
 
-    public void put(final int accountId, final int orderId, final int amount)
+    @Override
+    public void place(final int accountId, final int orderId, final int amount)
     {
         orders.add(new Order(accountId, orderId, amount));
         events.orderPlaced(accountId, amount);
